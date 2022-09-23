@@ -10,10 +10,13 @@ app.use(express.json());
 app.use(express.static("public"));
 
 
-app.use("/user", usersRoutes)
+app.use("/api/v1/user", usersRoutes)
+
+
+app.all("*", (req, res) => {
+  res.send("NO route found.");
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
-
-module.exports = app
