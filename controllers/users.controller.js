@@ -1,55 +1,46 @@
-const users = require("../models/users.json")
+const users = require("../models/users.json");
+const fs = require("fs");
 
 module.exports.getRandomUser = async (req, res, next) => {
-  try{
-    const index = Math.floor(Math.random() * 10)
-    const randomUser = users[index]
-    console.log(randomUser)
-    res.status(200).json({success: true, data:randomUser})
-  } catch{
-
-  }
-}
+  const index = Math.floor(Math.random() * 10);
+  const randomUser = users[index];
+  console.log(randomUser);
+  res.status(200).json({ success: true, data: randomUser });
+};
 
 module.exports.getAllUsers = async (req, res, next) => {
-  try{
-    res.status(200).json({success: true, data: users})
-  } catch{
-
-  }
-}
+  res.status(200).json({ success: true, data: users });
+};
 
 module.exports.saveRandomUser = async (req, res, next) => {
- 
-  try{
-    res.status(200).json({success: true, data: users})
-  } catch{
+  const body = req.body;
+  const user = {
+    ...body,
+    id: users.length + 1,
+  };
 
-  }
-}
+  const newUsers = [...users, user]
+
+  const jsonData = JSON.stringify(newUsers);
+
+  fs.writeFile("./models/users.json", jsonData, (err) => {
+    if (err) throw err;
+    console.log("Data written to json file");
+  });
+  res.status(200).json({ success: true, data: users });
+};
 
 module.exports.updateRandomUser = async (req, res, next) => {
-  try{
-    res.status(200).json({success: true, data: users})
-  } catch{
-
-  }
-}
+  res.status(200).json({ success: true, data: users });
+};
 
 module.exports.updateUsers = async (req, res, next) => {
-  try{
-    res.status(200).json({success: true, data: users})
-  } catch{
-
-  }
-}
+  res.status(200).json({ success: true, data: users });
+};
 
 module.exports.deleteUser = async (req, res, next) => {
-  try{
-    const { id } = req.params;
-    res.status(200).json({ success: true, message: "Successfully deleted the tool" });
-  } catch{
-
-  }
-}
-
+  const { id } = req.params;
+  const filtered = users.filter((user) => user.id !== parseInt(id));
+  console.log(filtered);
+  res.status(200).json({ success: true, data: filtered });
+};
