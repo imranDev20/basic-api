@@ -1,5 +1,5 @@
 const users = require("../models/users.json");
-const fs = require("fs");
+const { readFile, writeFile } = require("fs").promises;
 
 module.exports.getRandomUser = async (req, res, next) => {
   const index = Math.floor(Math.random() * 10);
@@ -19,11 +19,11 @@ module.exports.saveRandomUser = async (req, res, next) => {
     id: users.length + 1,
   };
 
-  const newUsers = [...users, user]
+  const newUsers = [...users, user];
 
   const jsonData = JSON.stringify(newUsers);
 
-  fs.writeFile("./models/users.json", jsonData, (err) => {
+  writeFile("./models/users.json", jsonData, (err) => {
     if (err) throw err;
     console.log("Data written to json file");
   });
@@ -38,9 +38,37 @@ module.exports.updateUsers = async (req, res, next) => {
   res.status(200).json({ success: true, data: users });
 };
 
+// Deleting a user
 module.exports.deleteUser = async (req, res, next) => {
-  const { id } = req.params;
-  const filtered = users.filter((user) => user.id !== parseInt(id));
-  console.log(filtered);
-  res.status(200).json({ success: true, data: filtered });
+  try {
+    // Getting the ID from URL parameter
+    let { id } = req.params;
+    id = parseInt(id);
+
+    const usersRaw = await readFile("./models/users.json");
+    const users = JSON.parse(usersRaw);
+
+    const isIncluded = users.map((user) => user.id).includes(id);
+
+    if (isIncluded) {
+      const filtered = users.filter((user) => user.id !== id);
+      console.log(filtered);
+      const jsonData = JSON.stringify(filtered);
+
+      await writeFile("./models/users.json", jsonData, (err) => {
+        if (err) {
+          console.log(err);
+        }
+        console.log("Data written to json file");
+      });
+
+      const newUsersRaw = await readFile("./models/users.json");
+      const newUsers = JSON.parse(newUsersRaw);
+      res.status(200).json({ success: true, data: newUsers });
+    } else {
+      res.status(404).send("Not Found");
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
